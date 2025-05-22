@@ -117,5 +117,7 @@ static inline void *initialize_wayland() {
     return wayland_library;
 }
 
-#include "xdg-shell-client-header.h"
-#include "xdg-decoration-client-header.h"
+//#include "xdg-shell-client-header.h"
+//#include "xdg-decoration-client-header.h"
+
+#include "wayland-webos-shell-client-protocol.h"
