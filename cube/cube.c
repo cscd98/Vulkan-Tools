@@ -3798,7 +3798,7 @@ static const struct wl_seat_listener seat_listener = {
 }*/
 
 // was static
-void registry_handle_global(void *data, struct wl_registry *registry, uint32_t id, const char *interface,
+static void registry_handle_global(void *data, struct wl_registry *registry, uint32_t id, const char *interface,
                                    uint32_t version UNUSED) {
     struct demo *demo = data;
     // pickup wayland objects when they appear
@@ -3831,10 +3831,9 @@ void registry_handle_global(void *data, struct wl_registry *registry, uint32_t i
     }*/
 }
 
-// was static
-void registry_handle_global_remove(void *data UNUSED, struct wl_registry *registry UNUSED, uint32_t name UNUSED) {}
+static void registry_handle_global_remove(void *data UNUSED, struct wl_registry *registry UNUSED, uint32_t name UNUSED) {}
 
-const struct wl_registry_listener registry_listener = {registry_handle_global, registry_handle_global_remove};
+static const struct wl_registry_listener registry_listener = {registry_handle_global, registry_handle_global_remove};
 #endif
 
 #if defined(VK_USE_PLATFORM_XCB_KHR)
