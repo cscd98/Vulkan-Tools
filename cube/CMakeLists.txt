@@ -115,6 +115,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU")
                           MAIN_DEPENDENCY ${WAYLAND_CODE_PROTOCOL}
                           DEPENDS ${WAYLAND_CODE_PROTOCOL} ${WAYLAND_SCANNER_EXECUTABLE})
 
+if (NOT WEBOS)
         add_custom_command(COMMENT "Generating xdg-shell protocol dispatch data"
                            OUTPUT xdg-shell-code.c
                            COMMAND ${WAYLAND_SCANNER_EXECUTABLE}
@@ -149,12 +150,52 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU")
                                    ${CMAKE_CURRENT_BINARY_DIR}/xdg-decoration-client-header.h
                            MAIN_DEPENDENCY ${XDG_DECORATION_PROTOCOL}
                            DEPENDS ${XDG_DECORATION_PROTOCOL} ${WAYLAND_SCANNER_EXECUTABLE})
+endif()
 
-        set(WAYLAND_ADDITIONAL_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/wayland-client.c
+if (WEBOS)
+        set(WEBOS_WAYLAND_PROTOCOL_DIR ${WEBOS_SYSROOT}/usr/share/wayland-webos)
+
+        set(WEBOS_SHELL_XML ${WEBOS_WAYLAND_PROTOCOL_DIR}/webos-shell.xml)
+
+        # Generate client header
+        add_custom_command(
+            OUTPUT webos-shell-client-protocol.h
+            COMMAND ${WAYLAND_SCANNER_EXECUTABLE}
+                    client-header
+                    ${WEBOS_SHELL_XML}
+                    ${CMAKE_CURRENT_BINARY_DIR}/webos-shell-client-protocol.h
+            MAIN_DEPENDENCY ${WEBOS_SHELL_XML}
+            DEPENDS ${WEBOS_SHELL_XML} ${WAYLAND_SCANNER_EXECUTABLE}
+            COMMENT "Generating webOS shell client protocol header"
+        )
+
+        # Generate client code
+        add_custom_command(
+            OUTPUT webos-shell-protocol.c
+            COMMAND ${WAYLAND_SCANNER_EXECUTABLE}
+                    private-code
+                    ${WEBOS_SHELL_XML}
+                    ${CMAKE_CURRENT_BINARY_DIR}/webos-shell-protocol.c
+            MAIN_DEPENDENCY ${WEBOS_SHELL_XML}
+            DEPENDS ${WEBOS_SHELL_XML} ${WAYLAND_SCANNER_EXECUTABLE}
+            COMMENT "Generating webOS shell client protocol code"
+        )
+
+        list(APPEND WAYLAND_ADDITIONAL_SOURCES
+            ${CMAKE_CURRENT_BINARY_DIR}/webos-shell-protocol.c
+            ${CMAKE_CURRENT_BINARY_DIR}/webos-shell-client-protocol.h
+    )
+endif()
+
+        set(WAYLAND_ADDITIONAL_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/wayland-client.c)
+
+if (NOT WEBOS)
+        list(APPEND WAYLAND_ADDITIONAL_SOURCES
                            ${CMAKE_CURRENT_BINARY_DIR}/xdg-shell-code.c
                            ${CMAKE_CURRENT_BINARY_DIR}/xdg-shell-client-header.h
                            ${CMAKE_CURRENT_BINARY_DIR}/xdg-decoration-code.c
                            ${CMAKE_CURRENT_BINARY_DIR}/xdg-decoration-client-header.h)
+endif()
     endif()
 
     if(BUILD_WSI_DIRECTFB_SUPPORT)
@@ -317,6 +358,24 @@ if (WAYLAND_CLIENT_LINK_LIBRARIES)
     target_compile_definitions(vkcube PRIVATE "WAYLAND_LIBRARY=\"${WAYLAND_CLIENT_LINK_LIBRARIES}\"")
 endif()
 
+if (WEBOS)
+    target_include_directories(vkcube PRIVATE
+        ${WEBOS_SYSROOT}/usr/include
+        ${CMAKE_CURRENT_BINARY_DIR}
+    )
+
+    target_link_directories(vkcube PRIVATE
+        ${WEBOS_SYSROOT}/usr/lib
+    )
+
+    # Must use plain signature because vkcube already used plain earlier
+    target_link_libraries(vkcube
+        wayland-webos-client
+    )
+endif()
+
+if (NOT WEBOS)
+
 # ----------------------------------------------------------------------------
 # vkcubepp
 
@@ -382,4 +441,6 @@ if(APPLE)
     )
 else()
     install(TARGETS vkcubepp)
+endif()
+
 endif()

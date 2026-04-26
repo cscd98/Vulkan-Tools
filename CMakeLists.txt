@@ -53,6 +53,13 @@ if (ENABLE_ADDRESS_SANITIZER)
     endif()
 endif()
 
+if(CMAKE_CXX_COMPILER MATCHES "webos" OR
+   CMAKE_CXX_COMPILER MATCHES "starfish")
+	set(WEBOS ON)
+    set(WEBOS_SYSROOT $ENV{STAGING_DIR})
+    add_compile_definitions(WEBOS)
+endif()
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 find_package(VulkanHeaders QUIET REQUIRED CONFIG)

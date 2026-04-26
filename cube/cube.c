@@ -917,7 +917,7 @@ static void demo_draw_build_cmd(struct demo *demo, SubmissionResources *submissi
     err = vkResetCommandBuffer(submission_resource->cmd, 0 /* VK_COMMAND_BUFFER_RESET_FLAGS */);
     err = vkBeginCommandBuffer(submission_resource->cmd, &cmd_buf_info);
 
-    demo_name_object(demo, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)submission_resource->cmd, "CubeDrawCommandBuf");
+    demo_name_object(demo, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)(uintptr_t)submission_resource->cmd, "CubeDrawCommandBuf");
 
     const float begin_color[4] = {0.4f, 0.3f, 0.2f, 0.1f};
     demo_push_cb_label(demo, submission_resource->cmd, begin_color, "DrawBegin");
@@ -2480,7 +2480,7 @@ static void demo_prepare(struct demo *demo) {
     };
     err = vkAllocateCommandBuffers(demo->device, &cmd, &demo->cmd);
     assert(!err);
-    demo_name_object(demo, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)demo->cmd, "PrepareCB");
+    demo_name_object(demo, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)(uintptr_t)demo->cmd, "PrepareCB");
     VkCommandBufferBeginInfo cmd_buf_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .pNext = NULL,
@@ -2504,7 +2504,7 @@ static void demo_prepare(struct demo *demo) {
     for (uint32_t i = 0; i < FRAME_LAG; i++) {
         err = vkAllocateCommandBuffers(demo->device, &cmd, &demo->submission_resources[i].cmd);
         assert(!err);
-        demo_name_object(demo, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)demo->submission_resources[i].cmd, "MainCommandBuffer(%u)",
+        demo_name_object(demo, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)(uintptr_t)demo->submission_resources[i].cmd, "MainCommandBuffer(%u)",
                          i);
     }
 
@@ -2527,7 +2527,7 @@ static void demo_prepare(struct demo *demo) {
         for (uint32_t i = 0; i < FRAME_LAG; i++) {
             err = vkAllocateCommandBuffers(demo->device, &present_cmd_info, &demo->submission_resources[i].graphics_to_present_cmd);
             assert(!err);
-            demo_name_object(demo, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)demo->submission_resources[i].graphics_to_present_cmd,
+            demo_name_object(demo, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)(uintptr_t)demo->submission_resources[i].graphics_to_present_cmd,
                              "GfxToPresent(%u)", i);
         }
     }
@@ -3642,7 +3642,7 @@ static void pointer_handle_motion(void *data, struct wl_pointer *pointer, uint32
 
 static void pointer_handle_button(void *data, struct wl_pointer *wl_pointer, uint32_t serial, uint32_t time, uint32_t button,
                                   uint32_t state) {
-    struct demo *demo = data;
+    //struct demo *demo = data;
     if (button == BTN_LEFT && state == WL_POINTER_BUTTON_STATE_PRESSED) {
         //xdg_toplevel_move(demo->xdg_toplevel, demo->seat, serial);
     }
@@ -3716,7 +3716,7 @@ static const struct wl_seat_listener seat_listener = {
     xdg_wm_base_pong(xdg_wm_base, serial);
 }*/
 
-static const struct xdg_wm_base_listener wm_base_listener = {wm_base_ping};
+//static const struct xdg_wm_base_listener wm_base_listener = {wm_base_ping};
 
 static void registry_handle_global(void *data, struct wl_registry *registry, uint32_t id, const char *interface,
                                    uint32_t version UNUSED) {
