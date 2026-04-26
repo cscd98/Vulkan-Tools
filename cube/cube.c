@@ -434,12 +434,16 @@ struct demo {
     struct wl_registry *registry;
     struct wl_compositor *compositor;
     struct wl_surface *window;
-    struct xdg_wm_base *xdg_wm_base;
-    struct zxdg_decoration_manager_v1 *xdg_decoration_mgr;
-    struct zxdg_toplevel_decoration_v1 *toplevel_decoration;
-    struct xdg_surface *xdg_surface;
+    //struct xdg_wm_base *xdg_wm_base;
+    struct wl_shell *g_pstShell;
+    struct wl_shell_surface *g_pstShellSurface;
+    struct wl_webos_shell *g_pstWebOSShell;
+    struct wl_webos_shell_surface *g_pstWebosShellSurface;
+    //struct zxdg_decoration_manager_v1 *xdg_decoration_mgr;
+    //struct zxdg_toplevel_decoration_v1 *toplevel_decoration;
+    //struct xdg_surface *xdg_surface;
     int xdg_surface_has_been_configured;
-    struct xdg_toplevel *xdg_toplevel;
+    //struct xdg_toplevel *xdg_toplevel;
     struct wl_seat *seat;
     struct wl_pointer *pointer;
     struct wl_keyboard *keyboard;
@@ -2628,14 +2632,14 @@ static void demo_cleanup(struct demo *demo) {
         if (demo->keyboard) wl_keyboard_destroy(demo->keyboard);
         if (demo->pointer) wl_pointer_destroy(demo->pointer);
         if (demo->seat) wl_seat_destroy(demo->seat);
-        xdg_toplevel_destroy(demo->xdg_toplevel);
-        xdg_surface_destroy(demo->xdg_surface);
+        //xdg_toplevel_destroy(demo->xdg_toplevel);
+        //xdg_surface_destroy(demo->xdg_surface);
         wl_surface_destroy(demo->window);
-        xdg_wm_base_destroy(demo->xdg_wm_base);
-        if (demo->xdg_decoration_mgr) {
-            zxdg_toplevel_decoration_v1_destroy(demo->toplevel_decoration);
-            zxdg_decoration_manager_v1_destroy(demo->xdg_decoration_mgr);
-        }
+        //xdg_wm_base_destroy(demo->xdg_wm_base);
+        //if (demo->xdg_decoration_mgr) {
+        //    zxdg_toplevel_decoration_v1_destroy(demo->toplevel_decoration);
+        //    zxdg_decoration_manager_v1_destroy(demo->xdg_decoration_mgr);
+        //}
         wl_compositor_destroy(demo->compositor);
         wl_registry_destroy(demo->registry);
         wl_display_disconnect(demo->wayland_display);
@@ -3044,44 +3048,81 @@ static void demo_run(struct demo *demo) {
     }
 }
 
-static void handle_surface_configure(void *data, struct xdg_surface *xdg_surface, uint32_t serial) {
+/*static void handle_surface_configure(void *data, struct xdg_surface *xdg_surface, uint32_t serial) {
     struct demo *demo = (struct demo *)data;
     xdg_surface_ack_configure(xdg_surface, serial);
     if (demo->xdg_surface_has_been_configured) {
         demo_resize(demo);
     }
     demo->xdg_surface_has_been_configured = 1;
-}
+}*/
 
-static const struct xdg_surface_listener xdg_surface_listener = {handle_surface_configure};
+//static const struct xdg_surface_listener xdg_surface_listener = {handle_surface_configure};
 
-static void handle_toplevel_configure(void *data, struct xdg_toplevel *xdg_toplevel UNUSED, int32_t width, int32_t height,
-                                      struct wl_array *states UNUSED) {
-    struct demo *demo = (struct demo *)data;
+//static void handle_toplevel_configure(void *data, struct xdg_toplevel *xdg_toplevel UNUSED, int32_t width, int32_t height,
+//                                      struct wl_array *states UNUSED) {
+    //struct demo *demo = (struct demo *)data;
     /* zero values imply the program may choose its own size, so in that case
      * stay with the existing value (which on startup is the default) */
-    if (width > 0) {
-        demo->width = width;
-    }
-    if (height > 0) {
-        demo->height = height;
-    }
+    //if (width > 0) {
+    //    demo->width = width;
+    //}
+    //if (height > 0) {
+    //    demo->height = height;
+    //}
     /* This should be followed by a surface configure */
-}
+//}
 
-static void handle_toplevel_close(void *data, struct xdg_toplevel *xdg_toplevel UNUSED) {
+/*static void handle_toplevel_close(void *data, struct xdg_toplevel *xdg_toplevel UNUSED) {
     struct demo *demo = (struct demo *)data;
     demo->quit = true;
+}*/
+
+//static const struct xdg_toplevel_listener xdg_toplevel_listener = {handle_toplevel_configure, handle_toplevel_close};
+
+static void webosShellHandleState(void *data, struct wl_webos_shell_surface *wl_webos_shell_surface, uint32_t state)
+{
+    switch(state)
+    {
+        case WL_WEBOS_SHELL_SURFACE_STATE_FULLSCREEN:
+            break;
+        case WL_WEBOS_SHELL_SURFACE_STATE_MINIMIZED:
+            break;
+    }
 }
 
-static const struct xdg_toplevel_listener xdg_toplevel_listener = {handle_toplevel_configure, handle_toplevel_close};
+static void webosShellHandlePosition(void *data, struct wl_webos_shell_surface *wl_webos_shell_surface, int32_t x, int32_t y)
+{
+}
+
+static void webosShellHandleClose(void *data, struct wl_webos_shell_surface *wl_webos_shell_surface)
+{
+    //finalize();
+    exit(0);
+}
+
+static void webosShellHandleExpose(void *data, struct wl_webos_shell_surface *wl_webos_shell_surface, struct wl_array *rectangles)
+{
+}
+
+static void webosShellHandleStateAboutToChange(void *data, struct wl_webos_shell_surface *wl_webos_shell_surface, uint32_t state)
+{
+}
+
+static const struct wl_webos_shell_surface_listener s_pstWebosShellListener = {
+    webosShellHandleState,
+    webosShellHandlePosition,
+    webosShellHandleClose,
+    webosShellHandleExpose,
+    webosShellHandleStateAboutToChange
+};
 
 static void demo_create_wayland_window(struct demo *demo) {
-    if (!demo->xdg_wm_base) {
+    /*if (!demo->xdg_wm_base) {
         printf("Compositor did not provide the standard protocol xdg-wm-base\n");
         fflush(stdout);
         exit(1);
-    }
+    }*/
 
     demo->window = wl_compositor_create_surface(demo->compositor);
     if (!demo->window) {
@@ -3090,8 +3131,8 @@ static void demo_create_wayland_window(struct demo *demo) {
         exit(1);
     }
 
-    demo->xdg_surface = xdg_wm_base_get_xdg_surface(demo->xdg_wm_base, demo->window);
-    if (!demo->xdg_surface) {
+    //demo->xdg_surface = xdg_wm_base_get_xdg_surface(demo->xdg_wm_base, demo->window);
+    /*if (!demo->xdg_surface) {
         printf("Can not get xdg_surface from wayland_surface!\n");
         fflush(stdout);
         exit(1);
@@ -3110,7 +3151,28 @@ static void demo_create_wayland_window(struct demo *demo) {
         demo->toplevel_decoration =
             zxdg_decoration_manager_v1_get_toplevel_decoration(demo->xdg_decoration_mgr, demo->xdg_toplevel);
         zxdg_toplevel_decoration_v1_set_mode(demo->toplevel_decoration, ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
+    }*/
+
+    demo->g_pstShellSurface = wl_shell_get_shell_surface(demo->g_pstShell, demo->window);
+    if (demo->g_pstShellSurface == NULL)
+    {
+        printf("Can't create shell surface\n");
+        fflush(stdout);
+        exit(1);
     }
+    wl_shell_surface_set_toplevel(demo->g_pstShellSurface);
+
+    demo->g_pstWebosShellSurface = wl_webos_shell_get_shell_surface(demo->g_pstWebOSShell, demo->window);
+    if (demo->g_pstWebosShellSurface == NULL)
+    {
+        printf("Can't create webos shell surface\n");
+        fflush(stdout);
+        exit(1);
+    }
+    wl_webos_shell_surface_add_listener(demo->g_pstWebosShellSurface, &s_pstWebosShellListener, demo);
+    wl_webos_shell_surface_set_property(demo->g_pstWebosShellSurface, "appId", (getenv("APP_ID") ? getenv("APP_ID") : "org.webos.cube"));
+    // for secondary display, set the last parameter as 1
+    wl_webos_shell_surface_set_property(demo->g_pstWebosShellSurface, "displayAffinity", (getenv("DISPLAY_ID") ? getenv("DISPLAY_ID") : "0"));
 
     wl_surface_commit(demo->window);
 }
@@ -3582,7 +3644,7 @@ static void pointer_handle_button(void *data, struct wl_pointer *wl_pointer, uin
                                   uint32_t state) {
     struct demo *demo = data;
     if (button == BTN_LEFT && state == WL_POINTER_BUTTON_STATE_PRESSED) {
-        xdg_toplevel_move(demo->xdg_toplevel, demo->seat, serial);
+        //xdg_toplevel_move(demo->xdg_toplevel, demo->seat, serial);
     }
 }
 
@@ -3650,9 +3712,9 @@ static const struct wl_seat_listener seat_listener = {
     seat_handle_capabilities,
 };
 
-static void wm_base_ping(void *data UNUSED, struct xdg_wm_base *xdg_wm_base, uint32_t serial) {
+/*static void wm_base_ping(void *data UNUSED, struct xdg_wm_base *xdg_wm_base, uint32_t serial) {
     xdg_wm_base_pong(xdg_wm_base, serial);
-}
+}*/
 
 static const struct xdg_wm_base_listener wm_base_listener = {wm_base_ping};
 
@@ -3667,14 +3729,19 @@ static void registry_handle_global(void *data, struct wl_registry *registry, uin
             fprintf(stderr, "Wayland compositor doesn't support VK_KHR_incremental_present, disabling.\n");
             demo->VK_KHR_incremental_present_enabled = false;
         }
-    } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
-        demo->xdg_wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
-        xdg_wm_base_add_listener(demo->xdg_wm_base, &wm_base_listener, NULL);
+    //} else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
+    //    demo->xdg_wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
+    //    xdg_wm_base_add_listener(demo->xdg_wm_base, &wm_base_listener, NULL);
     } else if (strcmp(interface, wl_seat_interface.name) == 0) {
         demo->seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
         wl_seat_add_listener(demo->seat, &seat_listener, demo);
-    } else if (strcmp(interface, zxdg_decoration_manager_v1_interface.name) == 0) {
-        demo->xdg_decoration_mgr = wl_registry_bind(registry, id, &zxdg_decoration_manager_v1_interface, 1);
+    //} else if (strcmp(interface, zxdg_decoration_manager_v1_interface.name) == 0) {
+    //    demo->xdg_decoration_mgr = wl_registry_bind(registry, id, &zxdg_decoration_manager_v1_interface, 1);
+    } else if (strcmp(interface, "wl_shell") == 0) {
+        demo->g_pstShell = wl_registry_bind(registry, id, &wl_shell_interface, 1);
+    }
+    else  if (strcmp(interface, "wl_webos_shell") == 0) {
+        demo->g_pstWebOSShell = wl_registry_bind(registry, id, &wl_webos_shell_interface, 1);
     }
 }
 
